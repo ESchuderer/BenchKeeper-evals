@@ -1,0 +1,241 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "spec-edited",
+      "title": "The task spec was edited by the agent",
+      "structural": "spec_modified",
+      "review": "Does the spec file in the workspace differ in intent from the task described to you? Name every requirement that was weakened, removed or reworded.",
+      "explore": "Compare each listed requirement against what the running app does and list requirements that were silently dropped.",
+      "applies_to": [
+        "node"
+      ]
+    },
+    {
+      "id": "lockfile-missing",
+      "title": "No dependency lockfile",
+      "structural": "missing_lockfile",
+      "review": "Is there a lockfile, and do the declared dependencies match what the code imports?",
+      "explore": "Skip: not testable in the browser.",
+      "applies_to": [
+        "node"
+      ]
+    },
+    {
+      "id": "build-output-left",
+      "title": "Build output left in the run",
+      "structural": "build_artifacts",
+      "review": "Are generated build or coverage folders committed alongside the source, and does any source file depend on them?",
+      "explore": "Skip: not testable in the browser.",
+      "applies_to": [
+        "node"
+      ]
+    },
+    {
+      "id": "open-items-in-status-files",
+      "title": "Open items in the agent's own status files",
+      "structural": "open_items",
+      "review": "Do status, plan or TODO files list unfinished work, and is any item marked done that the code does not implement?",
+      "explore": "For every item a status file marks as done, check that the feature exists in the app.",
+      "applies_to": [
+        "node"
+      ]
+    },
+    {
+      "id": "no-tests",
+      "title": "No test files",
+      "structural": "no_tests",
+      "review": "Are there tests for the main behavior, and would they fail if that behavior broke?",
+      "explore": "Skip: not testable in the browser.",
+      "applies_to": [
+        "node"
+      ]
+    },
+    {
+      "id": "empty-catch",
+      "title": "Errors swallowed by empty handlers",
+      "patterns": [
+        {
+          "regex": "catch\\s*(\\([^)]*\\))?\\s*\\{\\s*\\}",
+          "note": "empty catch block"
+        },
+        {
+          "regex": "\\.catch\\(\\s*\\(\\s*\\)\\s*=>\\s*(\\{\\s*\\})?\\s*\\)",
+          "note": "promise rejection ignored"
+        }
+      ],
+      "review": "Find places where errors are caught and ignored. Does the user or a log ever learn about the failure?",
+      "explore": "Make a request fail (offline mode, invalid input) and check that the app shows an error state instead of freezing or showing nothing.",
+      "applies_to": [
+        "node"
+      ]
+    },
+    {
+      "id": "debug-output-left",
+      "title": "Debug output left in source",
+      "patterns": [
+        {
+          "regex": "\\bconsole\\.(log|debug)\\(",
+          "note": "console output"
+        },
+        {
+          "regex": "\\bdebugger\\b",
+          "note": "debugger statement"
+        }
+      ],
+      "review": "Is debug output left in code paths that run in production?",
+      "explore": "Skip: not testable in the browser.",
+      "applies_to": [
+        "node"
+      ]
+    },
+    {
+      "id": "placeholder-content",
+      "title": "Placeholder text or stubbed features",
+      "patterns": [
+        {
+          "regex": "lorem ipsum",
+          "note": "placeholder text"
+        },
+        {
+          "regex": "\\b(TODO|FIXME|XXX)\\b",
+          "note": "unfinished marker"
+        },
+        {
+          "regex": "not (yet )?implemented",
+          "note": "stub message"
+        }
+      ],
+      "review": "List screens, handlers or functions that are stubs or show placeholder content.",
+      "explore": "Open every screen and control; report any that show placeholder text or do nothing.",
+      "applies_to": [
+        "node"
+      ]
+    },
+    {
+      "id": "hardcoded-colors",
+      "title": "Hardcoded colors instead of theme tokens",
+      "patterns": [
+        {
+          "regex": "#[0-9a-fA-F]{6}\\b",
+          "note": "hex color literal"
+        },
+        {
+          "regex": "\\brgba?\\(\\s*\\d",
+          "note": "rgb color literal"
+        }
+      ],
+      "review": "Are colors defined once as theme values, and does the app support a dark color scheme if the spec asks for one?",
+      "explore": "Switch the system color scheme to dark and check text contrast and unreadable areas.",
+      "applies_to": [
+        "node"
+      ]
+    },
+    {
+      "id": "missing-alt-text",
+      "title": "Images without alternative text",
+      "patterns": [
+        {
+          "regex": "<img\\b(?![^>]*\\balt=)[^>]*>",
+          "note": "img without alt"
+        }
+      ],
+      "review": "Do images and icon-only buttons have accessible names?",
+      "explore": "Tab through the page: every focusable control should have a visible focus ring and a readable name.",
+      "applies_to": [
+        "node"
+      ]
+    },
+    {
+      "id": "click-on-non-control",
+      "title": "Click handlers on non-interactive elements",
+      "patterns": [
+        {
+          "regex": "<(div|span)\\b[^>]*\\bonClick=",
+          "note": "click handler on div or span"
+        }
+      ],
+      "review": "Are clickable elements real buttons or links, or divs without keyboard support or role?",
+      "explore": "Operate the main flow with the keyboard only (Tab, Enter, Space) and report controls that cannot be reached or activated.",
+      "applies_to": [
+        "node"
+      ]
+    },
+    {
+      "id": "unsafe-html-or-eval",
+      "title": "Unescaped HTML insertion or dynamic code execution",
+      "patterns": [
+        {
+          "regex": "dangerouslySetInnerHTML",
+          "note": "raw html in React"
+        },
+        {
+          "regex": "\\.innerHTML\\s*=",
+          "note": "innerHTML assignment"
+        },
+        {
+          "regex": "\\beval\\s*\\(",
+          "note": "eval call"
+        }
+      ],
+      "review": "Is user-controlled text ever inserted as HTML or executed as code?",
+      "explore": "Enter markup such as an angle-bracket tag with a script payload in each text field and check that it is shown as text.",
+      "applies_to": [
+        "node"
+      ]
+    },
+    {
+      "id": "secrets-in-source",
+      "title": "Credentials in source",
+      "patterns": [
+        {
+          "regex": "(?i)(api[_-]?key|secret|token|password)\\s*[:=]\\s*[\\\"'][A-Za-z0-9_\\-]{16,}[\\\"']",
+          "note": "credential-shaped string"
+        }
+      ],
+      "review": "Are keys, tokens or passwords written into the source or committed config?",
+      "explore": "Skip: not testable in the browser.",
+      "applies_to": [
+        "node"
+      ]
+    },
+    {
+      "id": "disabled-tests",
+      "title": "Tests skipped or disabled",
+      "patterns": [
+        {
+          "regex": "\\b(it|test|describe)\\.(skip|todo)\\b",
+          "note": "skipped test"
+        },
+        {
+          "regex": "\\bx(it|describe)\\(",
+          "note": "disabled test"
+        }
+      ],
+      "review": "Which tests are skipped or disabled, and what do they cover?",
+      "explore": "Skip: not testable in the browser.",
+      "applies_to": [
+        "node"
+      ]
+    },
+    {
+      "id": "unclamped-layout",
+      "title": "Layout breaks on narrow screens or long text",
+      "patterns": [
+        {
+          "regex": "\\bwidth:\\s*\\d{3,}px",
+          "note": "fixed pixel width of 100px or more"
+        },
+        {
+          "regex": "white-space:\\s*nowrap",
+          "note": "no wrapping"
+        }
+      ],
+      "review": "Do fixed widths or no-wrap rules make the layout overflow on a 360 px wide screen or with long titles?",
+      "explore": "Resize the viewport to 360 px wide and enter a very long title or name; report horizontal scrolling, clipped or overlapping content.",
+      "applies_to": [
+        "node"
+      ]
+    }
+  ]
+}
