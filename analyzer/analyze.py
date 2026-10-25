@@ -360,7 +360,7 @@ def run(args) -> None:
         if args.acceptance_dir:
             if mode:
                 shutil.copytree(args.acceptance_dir, work / "_acceptance", symlinks=False)
-                c["acceptance"] = tests(work, mode, shlex.split(args.acceptance_cmd) if args.acceptance_cmd else None)
+                c["acceptance"] = tests(work, mode, shlex.split(args.acceptance_cmd or "node --test _acceptance/"))
             else:
                 c["acceptance"] = no_exec
         result = {
@@ -616,8 +616,12 @@ def report(args) -> None:
     lines.append("")
     if human:
         lines += human_section(results, reviews, human)
-    lines += ["## Provenance", "", "| Run | Sandbox | Tools |", "|---|---|---|"]
-    lines += [f"| {r['run']} | {r.get('sandbox')} | {', '.join(f'{k} {v}' for k, v in r.get('tools', {}).items() if k != 'sandbox_image')} |" for r in results]
+    lines += ["## Provenance", "", "| Run | Sandbox | Tools | Review model, effort, CLI |", "|---|---|---|---|"]
+    for r in results:
+        tools = ", ".join(f"{k} {v}" for k, v in r.get("tools", {}).items() if k != "sandbox_image")
+        rv = reviews.get(r["run"])
+        who = f"{rv['model']}, {rv['effort']}, {rv.get('tools', {}).get('claude', 'unknown')}" if rv else "none"
+        lines.append(f"| {r['run']} | {r.get('sandbox')} | {tools} | {who} |")
     text = "\n".join(lines) + "\n"
     if args.md:
         Path(args.md).write_text(text)
@@ -669,7 +673,7 @@ def main() -> None:
     r.add_argument("--semgrep", action="store_true")
     r.add_argument("--self-tests", action="store_true", help="run the tests the run wrote (not comparable)")
     r.add_argument("--acceptance-dir", help="owner-written tests copied into every run as _acceptance/")
-    r.add_argument("--acceptance-cmd", help="command that runs them, split like a shell would (default: npm test)")
+    r.add_argument("--acceptance-cmd", help="command that runs them, split like a shell would (default: node --test _acceptance/)")
     r.add_argument("--sandbox", choices=["auto", "container", "process"], default="auto",
                    help="container: docker or podman (default when found); process: trusted runs only, no isolation")
     r.set_defaults(fn=run)

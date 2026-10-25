@@ -1,0 +1,39 @@
+# Version updates for the `uses:` pins (SHA plus version comment), the pinned tools (analyzer/tools), the Python
+# requirements and the sandbox image digest. Each update waits until the release is 7 days old (cooldown), so a release
+# withdrawn within that time never reaches a pull request. Not covered, bumped by hand: the actionlint image digest in
+# checks.yml, the Python and Node versions of the workflows (node-version must equal the Node tag of the sandbox image).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ['*']
+  - package-ecosystem: npm
+    directory: /analyzer/tools
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      tools:
+        update-types: [minor, patch]
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      python:
+        update-types: [minor, patch]
+  - package-ecosystem: docker
+    directory: /analyzer/sandbox
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
