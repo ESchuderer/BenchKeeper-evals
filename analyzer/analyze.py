@@ -67,7 +67,7 @@ def host_run(cmd: list[str], cwd: Path) -> dict:
     try:
         p = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=TIMEOUT, errors="replace")
         return {"code": p.returncode, "out": p.stdout, "err": p.stderr, "secs": round(time.time() - start, 1)}
-    except FileNotFoundError:
+    except OSError:  # not found, or not executable
         return {"code": None, "out": "", "err": "not found", "secs": 0, "missing": True}
     except subprocess.TimeoutExpired:
         return {"code": None, "out": "", "err": "timeout", "secs": TIMEOUT, "timeout": True}

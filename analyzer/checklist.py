@@ -22,6 +22,19 @@ OPEN_ITEM = re.compile(r"^\s*[-*]\s*\[ \]|\bTODO\b|\bnot (yet )?implemented\b", 
 TEST_FILE = re.compile(r"\.(test|spec)\.[cm]?[jt]sx?$")
 
 
+NESTED_QUANTIFIER = re.compile(r"\([^()]*[+*][^()]*\)\s*(?:[+*]|\{\d+,\})")
+MAX_REGEX = 200
+
+
+def unsafe_regex(regex: str) -> str | None:
+    """Reason a pattern is refused (too long, nested quantifier that can backtrack badly), else None."""
+    if len(regex) > MAX_REGEX:
+        return f"longer than {MAX_REGEX} characters"
+    if NESTED_QUANTIFIER.search(regex):
+        return "nested quantifier"
+    return None
+
+
 def load(path: Path | str | None = None) -> dict:
     return json.loads(Path(path or DEFAULT_PATH).read_text())
 
@@ -50,6 +63,9 @@ def validate(data: dict) -> list[str]:
                 re.compile(pat["regex"])
             except (re.error, KeyError, TypeError) as exc:
                 errors.append(f"{iid}: bad pattern {pat!r}: {exc}")
+                continue
+            if reason := unsafe_regex(pat["regex"]):
+                errors.append(f"{iid}: unsafe pattern {pat['regex']!r}: {reason}")
         spec = it.get("applies_if_spec_matches")
         if spec is not None:
             try:
