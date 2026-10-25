@@ -127,3 +127,11 @@ def test_model_versus_human_correlation_in_report(tmp_path):
     assert "Spearman rank correlation over 4 runs: 0.8" in text
     few = build(tmp_path, rs[:3], rv[:3], human=str(out))
     assert "at least 4 are needed" in few
+
+
+def test_report_ignores_the_sheet_key_picked_up_by_a_glob(tmp_path):
+    paths = write(tmp_path, [result("a__1")])
+    key = tmp_path / "human.key.json"
+    key.write_text('{"Rabc": "a__1"}')
+    az.report(type("A", (), {"results": [*paths, str(key)], "md": str(tmp_path / "r.md"), "human": None}))
+    assert "| a__1 |" in (tmp_path / "r.md").read_text()

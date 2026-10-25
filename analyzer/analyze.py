@@ -522,6 +522,8 @@ def review_metrics(rv: dict | None) -> dict:
 def load_results(paths: list[str]) -> tuple[list[dict], dict[str, dict]]:
     results, reviews = [], {}
     for p in map(Path, paths):
+        if p.name.endswith(".key.json"):  # the sheet key, picked up by a results/*.json glob
+            continue
         data = json.loads(p.read_text())
         if p.name.endswith(".review.json"):
             reviews[data.get("run", p.name.removesuffix(".review.json"))] = data
