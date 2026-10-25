@@ -48,17 +48,34 @@ def test_blinding_removes_instruction_files_and_names(tmp_path):
     (run / "node_modules").mkdir()
     (run / "node_modules" / "x.js").write_text("x")
     (run / "run.json").write_text('{"model": "Some-Model-9", "agent_tool": "ToolX"}')
-    (run / "README.md").write_text("Built by Some-Model-9 using ToolX in with-setup__1 (with-setup) next to Gemini.")
+    (run / "README.md").write_text("Built by Some-Model-9 using ToolX in with-setup__1 (with-setup) next to Acme-Model.")
+    (run / "package.json").write_text('{"name": "with-setup-app", "scripts": {"start": "node a.js"}}')
     dest = tmp_path / "ws"
-    stats = rv.blind(run, dest, ["Gemini"], FIXTURES / "SPEC.md")
+    stats = rv.blind(run, dest, ["Acme-Model"], FIXTURES / "SPEC.md")
     names = {p.name for p in dest.rglob("*")}
     assert not names & {"CLAUDE.md", "AGENTS.md", ".claude", ".github", "node_modules", "run.json", "prompt.txt"}
     assert (dest / "README.md").read_text() == "Built by [redacted] using [redacted] in [redacted] ([redacted]) next to [redacted]."
     assert (dest / "SPEC.md").read_text() == (FIXTURES / "SPEC.md").read_text()
-    assert stats["removed_paths"] >= 5 and stats["redactions"] == 5
+    assert stats["removed_paths"] >= 5 and stats["redactions"] == 6
+    assert json.loads((dest / "package.json").read_text()) == {"name": "redacted-app", "scripts": {"start": "node a.js"}}
     for f in dest.rglob("*"):
-        if f.is_file():
+        if f.is_file() and f.suffix in (".md", ".txt"):
             assert "with-setup" not in f.read_text()
+
+
+def test_blinding_leaves_manifests_and_short_condition_names_alone(tmp_path):
+    run = tmp_path / "A__1"
+    (run / "src").mkdir(parents=True)
+    (run / "package.json").write_text('{"name": "demo", "scripts": {"start": "node a.js"}, "type": "module"}')
+    (run / "index.html").write_text("<html><body>A counter, a button and an alert</body></html>")
+    (run / "tsconfig.json").write_text('{"compilerOptions": {"strict": true}}')
+    (run / "README.md").write_text("Task A: build an app. Added by run A__1.")
+    dest = tmp_path / "ws"
+    rv.blind(run, dest, [])
+    assert json.loads((dest / "package.json").read_text())["scripts"] == {"start": "node a.js"}
+    assert (dest / "index.html").read_text() == "<html><body>A counter, a button and an alert</body></html>"
+    assert json.loads((dest / "tsconfig.json").read_text()) == {"compilerOptions": {"strict": True}}
+    assert (dest / "README.md").read_text() == "Task A: build an app. Added by run [redacted]."
 
 
 def test_model_calls_are_read_only_and_capped():
