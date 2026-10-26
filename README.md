@@ -38,7 +38,7 @@ tests/fixtures/runs/   two tiny runs used by the tests and by CI
 
 ## Run it locally
 
-You need Python 3.12 or newer, Node 22, and docker or podman (the sandbox).
+You need Python 3.12 or newer, Node 26, and docker or podman (the sandbox).
 
 ```bash
 pip install -r requirements-dev.txt
