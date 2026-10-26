@@ -1,3 +1,3 @@
 # Image that runs code of an untrusted run (install, type check, tests, app start).
 # sandbox.py reads the image reference from this line; Dependabot bumps it with the cooldown.
-FROM docker.io/library/node:22.23.2-bookworm-slim@sha256:48e4b67d85f87bd551df43704e24d252f56cc5f8e9718841aace50f19948f0f9
+FROM docker.io/library/node:26.11.1-bookworm-slim@sha256:86f07bc9c5dce4578cf37e5a418b7bfc7f817cda25cde66e2b66e95ed86c4567
