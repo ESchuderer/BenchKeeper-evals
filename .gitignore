@@ -1,0 +1,8 @@
+# Raw runs, transcripts and screenshots stay out of git (release assets or an external store).
+/runs/
+/artifacts/
+/work/
+node_modules/
+__pycache__/
+.pytest_cache/
+.venv/

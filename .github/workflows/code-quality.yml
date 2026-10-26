@@ -1,0 +1,216 @@
+name: Code quality of agent runs
+
+# Manual. Raw runs are not in git: they come from a release asset (a .tar.gz whose top-level folders are the
+# runs, named <condition>__<rep>). Each run is analyzed in its own job with no secret; code of the run only
+# executes inside the sandbox container (see analyzer/sandbox.py). The model review is a separate job and the
+# only one that sees ANTHROPIC_API_KEY, in the step that runs the review. One report lands in the job summary.
+on:
+  workflow_dispatch:
+    inputs:
+      runs_tag:
+        description: Release tag that holds the runs archive
+        type: string
+        required: true
+      runs_asset:
+        description: Asset name of the runs archive (<name>.tar.gz)
+        type: string
+        default: runs.tar.gz
+      self_tests:
+        description: Run the tests the agent wrote (informational, not comparable)
+        type: boolean
+        default: false
+      review:
+        description: Model review, browser test and rating (costs API credits)
+        type: boolean
+        default: false
+      review_model:
+        description: Model id for the review, the same for every condition
+        type: string
+        default: claude-sonnet-5-5
+      redact:
+        description: Comma-separated words to hide from the reviewer (model names)
+        type: string
+        default: ''
+
+permissions: {}
+
+concurrency:
+  group: code-quality-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      runs: ${{ steps.list.outputs.runs }}
+    steps:
+      - id: list
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUNS_TAG: ${{ inputs.runs_tag }}
+          RUNS_ASSET: ${{ inputs.runs_asset }}
+        run: |
+          set -eu
+          case "$RUNS_ASSET" in *[!A-Za-z0-9._-]*|'') echo "::error::bad asset name"; exit 1;; esac
+          gh release download "$RUNS_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$RUNS_ASSET" --dir dl
+          runs=$(tar -tzf "dl/$RUNS_ASSET" | cut -d/ -f1 | sort -u | grep -E '^[A-Za-z0-9._-]+__[0-9]+$' \
+                 | python3 -c 'import json,sys; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))')
+          echo "runs=$runs" >> "$GITHUB_OUTPUT"
+          echo "Found runs: $runs"
+
+  analyze:
+    needs: discover
+    if: needs.discover.outputs.runs != '[]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        agent_run: ${{ fromJson(needs.discover.outputs.runs) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.15
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.23.2
+      - name: Install pinned tools
+        run: |
+          pip install --no-deps -r requirements.txt
+          npm ci --ignore-scripts --no-audit --no-fund --prefix analyzer/tools
+      - name: Fetch the run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUNS_TAG: ${{ inputs.runs_tag }}
+          RUNS_ASSET: ${{ inputs.runs_asset }}
+          RUN: ${{ matrix.agent_run }}
+        run: |
+          set -eu
+          gh release download "$RUNS_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$RUNS_ASSET" --dir dl
+          mkdir runs
+          tar -xzf "dl/$RUNS_ASSET" -C runs --no-same-owner --no-same-permissions "$RUN"
+          find "runs/$RUN" -type l -delete
+          rm -rf dl
+      - name: Analyze
+        env:
+          RUN: ${{ matrix.agent_run }}
+          SELF_TESTS: ${{ inputs.self_tests }}
+        run: |
+          set -eu
+          flags=()
+          [ "$SELF_TESTS" = "true" ] && flags+=(--self-tests)
+          # A pristine spec at the repo root lets the analyzer catch runs that edited theirs.
+          [ -f SPEC.md ] && flags+=(--pristine-spec SPEC.md)
+          [ -d acceptance ] && flags+=(--acceptance-dir acceptance)
+          python analyzer/analyze.py run "runs/$RUN" --out "results/$RUN.json" --sandbox container "${flags[@]}"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: result-${{ matrix.agent_run }}
+          path: results/${{ matrix.agent_run }}.json
+
+  review:
+    needs: [discover, analyze]
+    if: ${{ inputs.review && needs.discover.outputs.runs != '[]' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        agent_run: ${{ fromJson(needs.discover.outputs.runs) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.15
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22.23.2
+      - name: Install pinned tools
+        run: |
+          pip install --no-deps -r requirements.txt
+          npm ci --ignore-scripts --no-audit --no-fund --prefix analyzer/tools
+          # The one install script that is needed: it links the native Claude Code binary.
+          node analyzer/tools/node_modules/@anthropic-ai/claude-code/install.cjs
+          analyzer/tools/node_modules/.bin/playwright install --with-deps chromium
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: result-${{ matrix.agent_run }}
+          path: results
+      - name: Fetch the run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUNS_TAG: ${{ inputs.runs_tag }}
+          RUNS_ASSET: ${{ inputs.runs_asset }}
+          RUN: ${{ matrix.agent_run }}
+        run: |
+          set -eu
+          gh release download "$RUNS_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$RUNS_ASSET" --dir dl
+          mkdir runs
+          tar -xzf "dl/$RUNS_ASSET" -C runs --no-same-owner --no-same-permissions "$RUN"
+          find "runs/$RUN" -type l -delete
+          rm -rf dl
+      - name: Review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          RUN: ${{ matrix.agent_run }}
+          MODEL: ${{ inputs.review_model }}
+          REDACT: ${{ inputs.redact }}
+        run: |
+          set -eu
+          flags=()
+          [ -f SPEC.md ] && flags+=(--spec SPEC.md)
+          IFS=',' read -ra words <<< "$REDACT"
+          [ -n "$REDACT" ] && flags+=(--redact "${words[@]}")
+          python analyzer/review.py "runs/$RUN" --out "results/$RUN.review.json" --static "results/$RUN.json" \
+            --artifacts "artifacts/$RUN" --model "$MODEL" --sandbox container "${flags[@]}"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: review-${{ matrix.agent_run }}
+          path: results/${{ matrix.agent_run }}.review.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: screenshots-${{ matrix.agent_run }}
+          path: artifacts/${{ matrix.agent_run }}
+          if-no-files-found: ignore
+
+  report:
+    needs: [analyze, review]
+    if: ${{ always() && needs.analyze.result != 'skipped' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.15
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: '{result,review}-*'
+          path: results
+          merge-multiple: true
+      - name: Build report
+        run: |
+          python analyzer/analyze.py report results/*.json --md report.md > /dev/null
+          cat report.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: code-quality-report
+          path: |
+            report.md
+            results/*.json
