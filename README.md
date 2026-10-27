@@ -2,7 +2,7 @@
 
 This repository measures what an agent setup does to the code an agent writes. Give it several runs of the same task, a few per setup, and it analyzes each run, has a blinded model review it, and writes one report that compares the setups, with the checks that were skipped and the warnings that limit what you can conclude.
 
-It holds the analysis tooling and the reports. The product it measures lives in [BenchKeeper](https://github.com/ESchuderer/BenchKeeper).
+It holds the analysis tooling, the reports, and the recorded results of BenchKeeper's own benchmarks (`bench/`). The product it measures lives in [BenchKeeper](https://github.com/ESchuderer/BenchKeeper).
 
 ## What it measures
 
@@ -25,6 +25,9 @@ A model rating is noisy and a Claude reviewer may favor Claude-written code. Com
 ## Layout
 
 ```
+bench/                 recorded benchmark scenarios and results moved from BenchKeeper; bench/ORIGIN.md says where each file came from
+  SCENARIOS.md         the arms (setups) that were compared
+  results/             reports (*.md), run scores, manifests, and per-trial score and review files
 runs/                  raw runs, one folder per run: <condition>__<rep>, for example with-setup__1 (git-ignored)
   with-setup__1/
     run.json           optional: cost_usd, tokens, duration_min, refusals, hit_limit, agent_tool, model
@@ -35,6 +38,10 @@ analyzer/              analyze.py, review.py, checklist.py, mine.py, sandbox.py,
 results/               result JSON and reports (committed)
 tests/fixtures/runs/   two tiny runs used by the tests and by CI
 ```
+
+## Recorded results
+
+`bench/results/2026-10-18-mistreevous.md` (Sonnet 5.5) and `bench/results/2026-10-19-mistreevous-opusplan.md` (opusplan) report the mistreevous brownfield brief; the per-trial files they rest on sit next to them. The raw trial data (apps, transcripts, screenshots) was removed and cannot be restored, so these tables cannot be recomputed. `bench/ORIGIN.md` lists the source of every file and the few files still in BenchKeeper. No new runs go into `bench/`: new work uses `runs/` and `results/` below.
 
 ## Run it locally
 
@@ -79,6 +86,10 @@ python analyzer/analyze.py report results/*.json --human human.csv --md results/
 1. Name the folder `<condition>__<rep>` and add `prompt.txt` and `run.json` if you have them.
 2. Put the run in the runs archive (a release asset) or in `runs/` locally. Raw runs, transcripts and screenshots never go into git; `analyzer/check_size.py` fails CI if they do.
 3. Run `analyze.py run`, optionally `review.py`, then `report`. Commit only the result JSON and the report.
+
+## Add a recorded result
+
+A result from a new comparison goes in `results/` (see "Add a run"). Add a file to `bench/results/` only to move older BenchKeeper material: copy it unchanged, add its row to `bench/ORIGIN.md`, and keep it under the size limit (`analyzer/check_size.py`: no raw runs, media or archives, at most 512 KiB per file).
 
 ## How runs are isolated
 
