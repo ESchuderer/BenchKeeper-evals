@@ -1,4 +1,4 @@
-# BenchKeeper-evals
+# BenchKeeper-research
 
 This repository measures what an agent setup does to the code an agent writes. Give it several runs of the same task, a few per setup, and it analyzes each run, has a blinded model review it, and writes one report that compares the setups, with the checks that were skipped and the warnings that limit what you can conclude.
 

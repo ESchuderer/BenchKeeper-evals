@@ -1,5 +1,5 @@
 {
-  "name": "benchkeeper-evals-tools",
+  "name": "benchkeeper-research-tools",
   "private": true,
   "description": "Pinned tools of the analyzer. Exact versions; the lockfile pins the transitive packages.",
   "dependencies": {
