@@ -137,12 +137,12 @@ With the tree on, the demo app (Material widgets) showed:
 | `GestureDetector` over `CustomPaint`, no `Semantics` | `button` with no name |
 | `Image` (a failing network image) | absent |
 | Static `Text` | `generic` node with the text |
-| `ListView.builder` with 80 items | 17 `Item` nodes at first (0 to 16). After 12 mouse-wheel steps of 1500 px through `browser_run_code_unsafe`, items 63 to 79 were in the tree and items 0 to 16 were gone |
+| `ListView.builder` with 80 items | 17 `Item` nodes at first (0 to 16). After 12 mouse-wheel steps of 1500 px through `browser_run_code_unsafe`, items 63 to 79 were in the tree and items 0 to 16 were gone. `browser_mouse_wheel` needs `--caps vision`; `browser_press_key` with PageDown or End was not tried (unverified) |
 | Wrapping | Every page sits under about six nested unnamed `generic` nodes |
 
 Other measured facts:
 
-- `browser_take_screenshot` with a file name saved a PNG and returned no image in the tool response (0 images). Without a file name the response held 1 image. The tester prompt asks for named files (`review.py:282-292`).
+- `browser_take_screenshot` with a file name saved a PNG and returned no image in the tool response (0 images). Without a file name the response held 1 image. In the probe the named file landed in the client's working directory, not in `--output-dir`; the README says files with an explicit name resolve against the workspace root and files without one go to `--output-dir`. The tester prompt asks for named files (`review.py:282-292`) and the tester runs with `cwd=tester`, a temporary directory removed at the end (`review.py:330-337`). Whether named screenshots reach the artifacts folder with Claude Code as the client was not checked (unverified).
 - The default tool list of 0.0.83 has no coordinate tools: they are behind `--caps vision` (README). With `--caps vision`, `browser_mouse_click_xy` clicked the floating action button at (345, 800) with the semantics tree off, and the counter went from 0 to 1 (confirmed on a screenshot). The screenshot returned showed the rendered counter page.
 - Software WebGL in headless Chromium rendered the app; the console only showed "GPU stall due to ReadPixels" warnings.
 - The static file server is a gap. The Flutter image is Debian with no Python or Node, and `start_command` is npm-only (`review.py:214-224`). Options not run: add a static server to the image; use `flutter run -d web-server` (a development compile, not tried); serve `build/web` from the Node image (needs a server package, network at install).
@@ -188,7 +188,7 @@ Not run: it needs the Android SDK, a system image and KVM, which means large dow
 | lizard alternative | `dart_code_linter` 4.4.3 (published 2026-10-26, [repository](https://github.com/bancolombia/dart-code-linter), MIT licence file in the package, "based on a fork of Dart Code Metrics") | `dart run dart_code_linter:metrics analyze lib --reporter=json` worked on the sample. It found all 10 functions including the getter, arrow functions and constructor; `Calc.score` CCN 10, `describe` CCN 1 (switch arms not counted). It needs `dart pub get` to fetch it as a dev dependency, then runs as Dart code. The JSON comes after progress text on stdout and has to be cut out |
 | Commercial alternative | DCM (dcm.dev). Free plan: 1 seat, up to 50k analysed lines, 100 lint rules, 22 metrics ([pricing](https://dcm.dev/pricing)). Subscriptions for more. The page does not say whether it is open source and does not mention a JSON reporter | Not run |
 | Discontinued package | `dart_code_metrics` 5.7.6, last published 2023-07-16, `isDiscontinued: true` ([pub.dev API](https://pub.dev/api/packages/dart_code_metrics)) | Not run |
-| jscpd duplication | jscpd 5.4.1 | Dart is a built-in format (`dart`, `.dart`, [FORMATS.md](https://github.com/kucherenko/jscpd/blob/master/FORMATS.md)). On two near-identical Dart files it found 1 clone, 27 duplicated lines, 36.99 percent (measured). Run with the current ignore list on the default Flutter app (one Dart source file) it scanned 1383 files and 210,295 lines in 12 formats because `.pub-cache` was inside the folder, and reported 11.08 percent and 1072 clones (measured) |
+| jscpd duplication | jscpd 5.4.1 | Dart is a built-in format (`dart`, `.dart`, [FORMATS.md](https://github.com/kucherenko/jscpd/blob/master/FORMATS.md)). On two near-identical Dart files it found 1 clone, 27 duplicated lines, 36.99 percent (measured). Run with the current ignore list on the default Flutter app (two Dart files, plus the generated platform folders, `coverage/`, a test report and the pub cache) it scanned 1383 files and 210,295 lines in 12 formats because `.pub-cache` was inside the folder, and reported 11.08 percent and 1072 clones (measured) |
 | Suppression count | A new pattern list is needed | Documented markers ([analysis docs](https://dart.dev/tools/analysis)): `// ignore: <rule>`, `// ignore_for_file: <rule>` (also `// ignore_for_file: type=lint`), and in `analysis_options.yaml`: `analyzer: exclude:`, `analyzer: errors: <rule>: ignore`. The `dynamic` type: a token match on `dynamic` and `as dynamic`; the lint `avoid_dynamic_calls` allows `as dynamic` ([rule page](https://dart.dev/tools/linter-rules/avoid_dynamic_calls)). A `// dart format off` marker is not in the format docs page (unverified); `// dart format width=<n>` is. In the probe an `// ignore: unused_import` comment removed that warning from `dart analyze` output |
 | Tests | `flutter test` (section 1) | Exit code and JSON reporter |
 | Coverage | `flutter test --coverage` | lcov file |
@@ -248,8 +248,34 @@ All in podman 6.1.4 on the author's host, throwaway images and containers (remov
 
 - Images: `debian:bookworm-slim` plus the archive for Flutter 3.47.8 (three build variants, last one described above), plus the Linux desktop layer.
 - Projects: default `flutter create` apps with small edits; a probe package with a hook, an executable and a library initializer; a two-file Dart sample for lizard, jscpd and `dart_code_linter`.
-- Web: `flutter build web --release`, with and without `--no-web-resources-cdn`, and with `--wasm`; `@playwright/mcp` 0.0.83 over stdio against the built folder served by `python3 -m http.server` on the host, using Chromium 155. Only code I wrote or generated was executed. No downloaded repository code was run outside a container; the packages from pub.dev and npm that were run (`dart_code_linter`, `hooks`, `jscpd`, lizard, `@playwright/mcp`) were pinned by version and installed with scripts off where npm was used.
+- Web: `flutter build web --release`, with and without `--no-web-resources-cdn`, and with `--wasm`; `@playwright/mcp` 0.0.83 over stdio against the built folder served by `python3 -m http.server` on the host, using Chromium 155. Where the code ran: inside podman containers, the Flutter SDK and every pub package (the default app's dependencies, `hooks` 2.2.0, `dart_code_linter` 4.4.3, the probe package). On the host, outside any container: `@playwright/mcp` 0.0.83 with Chromium 155, jscpd 5.4.1 (installed with npm install scripts off), lizard 1.24.1 (pip, in a virtual environment) and `python3 -m http.server` for the built web folders. The host-side tools ran only on sample files and on apps the researcher built from `flutter create` output; no downloaded repository was cloned or run.
 - Tools: lizard 1.24.1 in a Python virtual environment; jscpd 5.4.1 from npm.
+
+The final image definition (the last `RUN` is the desktop layer), and the init script used in the web probe:
+
+```dockerfile
+FROM docker.io/library/debian:bookworm-slim
+RUN apt-get update -y -q && apt-get install -y -q --no-install-recommends curl ca-certificates git unzip xz-utils zip libglu1-mesa >/dev/null && rm -rf /var/lib/apt/lists/* && git config --system --add safe.directory '*'
+ENV PATH=/opt/sdk/flutter/bin:$PATH FLUTTER_SUPPRESS_ANALYTICS=true CI=true
+RUN set -e; \
+    curl -sSfL -o /tmp/flutter.tar.xz https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.47.8-stable.tar.xz; \
+    echo "baf7dcc5a3dbba60fe863bf493a6cf203195621f7786eaa5a1bba02cd0d87dd2  /tmp/flutter.tar.xz" | sha256sum -c -; \
+    mkdir /opt/sdk && tar -xf /tmp/flutter.tar.xz -C /opt/sdk && rm /tmp/flutter.tar.xz; \
+    export FLUTTER_ALLOW_ROOT=1 PUB_CACHE=/opt/sdk-pub-cache; \
+    flutter --version; flutter precache --web; \
+    chmod -R a+rwX /opt/sdk /opt/sdk-pub-cache
+RUN apt-get update -y -q && apt-get install -y -q --no-install-recommends clang cmake ninja-build pkg-config libgtk-3-dev libstdc++-12-dev xvfb xauth x11-apps imagemagick libgl1-mesa-dri libegl1 >/dev/null && rm -rf /var/lib/apt/lists/*
+```
+
+```js
+// --init-script: once Flutter's semantics placeholder exists, activate it.
+(() => {
+  const t = setInterval(() => {
+    const el = document.querySelector('flt-semantics-placeholder');
+    if (el) { el.click(); clearInterval(t); }
+  }, 100);
+})();
+```
 
 ## What I could not verify
 
