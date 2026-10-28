@@ -25,6 +25,8 @@ A model rating is noisy and a Claude reviewer may favor Claude-written code. Com
 ## Layout
 
 ```
+EVALUATIONS.md         index of the evaluations of components considered for BenchKeeper, with the rules for evidence
+evaluations/           one file per component, by category, and studies.md (cross-tool findings, sources to follow)
 bench/                 recorded benchmark scenarios and results moved from BenchKeeper; bench/ORIGIN.md says where each file came from
   SCENARIOS.md         the arms (setups) that were compared
   results/             reports (*.md), run scores, manifests, and per-trial score and review files
