@@ -1,0 +1,10 @@
+Below is one instruction file that a coding agent loads at the start of every session, with line numbers. Review it; do not read files or run commands.
+Report only these problems:
+- contradiction: two lines that cannot both be followed (name both lines).
+- vague: a line an agent cannot act on or check, because it names no concrete action, file, command or threshold.
+- enforceable: a line a formatter, linter, hook or CI check could enforce instead of the agent.
+- restates: a line that only describes what the agent can read from the code or config itself (languages, versions, folders, scripts), with no instruction.
+A line that is specific and gives its reason is fine; report nothing for it. Report nothing else.
+Answer with one JSON object and nothing else: {"findings": [{"kind": "...", "lines": [n], "why": "one short sentence", "fix": "one short sentence"}]}. An empty list when nothing applies.
+
+FILE
