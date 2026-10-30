@@ -1,6 +1,6 @@
 # Research notes
 
-Research notes written for BenchKeeper issues, one folder per note. Each note was written in [ESchuderer/BenchKeeper](https://github.com/ESchuderer/BenchKeeper) on a branch `research/<slug>` and is copied here unchanged, except that paths and relative links now point to their place in this repository. Inside a note, `#N`, "this repository", commit hashes and paths such as `app/` or `plugins/` refer to BenchKeeper. Each note names the date its sources were read.
+Research notes written for BenchKeeper issues, one folder per note. Each note was written in [ESchuderer/BenchKeeper](https://github.com/ESchuderer/BenchKeeper) on a branch `research/<slug>` and is copied here unchanged, except that paths and relative links now point to their place in this repository. Inside a note, `#N`, "this repository", commit hashes and paths such as `app/` or `plugins/` refer to BenchKeeper.
 
 | Note | Subject | Source branch | BenchKeeper issues that link it |
 |---|---|---|---|
