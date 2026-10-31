@@ -1,6 +1,6 @@
 # Origin of the files in `bench/`
 
-Every file was copied unchanged from [ESchuderer/BenchKeeper](https://github.com/ESchuderer/BenchKeeper) at commit `9a28b89` (main, 2026-10-27), same relative path. Earlier history is in that repository.
+The files in the table below were copied unchanged from [ESchuderer/BenchKeeper](https://github.com/ESchuderer/BenchKeeper) at commit `9a28b89` (main, 2026-10-27), same relative path. Earlier history is in that repository. The files under "Moved last" came from a later commit.
 
 | Here | Origin (BenchKeeper `main@9a28b89`) |
 |---|---|
@@ -12,16 +12,17 @@ Every file was copied unchanged from [ESchuderer/BenchKeeper](https://github.com
 
 ## Evaluations
 
-`EVALUATIONS.md` and `evaluations/` (one file per component, plus `studies.md`) were copied from BenchKeeper at commit `fd5dafd` (integration/7.0, 2026-10-28), same relative path, with one change: links to files that are still in BenchKeeper (`bench/PROTOCOL.md`, `bench/results/2026-10-16-skill-authoring.md`) and to `evaluations/practices/lite-install.md`, which BenchKeeper keeps because its setup guide links it, now point to BenchKeeper on GitHub.
+`EVALUATIONS.md` and `evaluations/` (one file per component, plus `studies.md`) were copied from BenchKeeper at commit `fd5dafd` (integration/7.0, 2026-10-28), same relative path. `evaluations/practices/lite-install.md` came later with the files below. Links to files that were still in BenchKeeper at the time now point to their copies here.
 
-## Not moved yet
+## Moved last
 
-These 37 files stay in BenchKeeper until a follow-up moves them; the paths below are in BenchKeeper. The other files of the same trials are here.
+These 38 files were copied unchanged from BenchKeeper at commit `822bf7a` (main, 2026-10-31), same relative path. With them every recorded file of the trials is here.
 
 - `bench/PROTOCOL.md`
 - `bench/results/2026-10-16-skill-authoring.md`, `bench/results/2026-10-16-skills-inventory.md`, `bench/results/skills-files-2026-10-16.json`, `bench/results/skill-lint-2026-10-16.json`
 - Sonnet run (`bench/results/2026-10-18-mistreevous-sonnet/`), `review.json` of round-1 A, AC, AL, AM, B, F; round-2 A, AM, F, G, V; round-3 AB, V. `review-2.json` of round-1 AC, AL, AM, B, H, V; round-2 A, B, F, V; round-3 AC, AM, V.
 - opusplan run (`bench/results/2026-10-19-mistreevous-opusplan/`), `review.json` of round-1 A, AM; round-2 A; round-3 A. `review-2.json` of round-1 AM; round-2 A.
+- `evaluations/practices/lite-install.md`
 
 ## Raw trial data is gone
 
