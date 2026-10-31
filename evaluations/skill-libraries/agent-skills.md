@@ -28,7 +28,7 @@ Arm: F (agent-skills alone). Brownfield run [mistreevous](https://github.com/ESc
 
 ## Skill authoring check
 
-Rank 2 of 8, review 3.4, static checks 99% (0.6.13): the only collection with per-skill evaluations (results on Opus only). Conciseness 2: long bodies explain what Claude already knows. 24 links leave the skill folder. Details: [bench/results/2026-10-16-skill-authoring.md](https://github.com/ESchuderer/BenchKeeper/blob/main/bench/results/2026-10-16-skill-authoring.md).
+Rank 2 of 8, review 3.4, static checks 99% (0.6.13): the only collection with per-skill evaluations (results on Opus only). Conciseness 2: long bodies explain what Claude already knows. 24 links leave the skill folder. Details: [bench/results/2026-10-16-skill-authoring.md](../../bench/results/2026-10-16-skill-authoring.md).
 
 ## Decision
 

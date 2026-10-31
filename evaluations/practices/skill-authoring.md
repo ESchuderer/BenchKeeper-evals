@@ -33,7 +33,7 @@ BenchKeeper skills, checked 2026-10-28 (all six plugin skills; the table heading
 
 Library skill `designing-technical-uis` (setup-v5.0, installed per project): gerund name, description in third person with what and when, no reference files. Check of the text and units rules (as `writing-microcopy`, before the inputs, comparison and chart rules were added): 4 tasks on `web/` (a settings drawer; bench empty state, error, intro and tooltip; a review of `Page.tsx`; a technical results table), one Sonnet subagent with and one without the skill each, scored by the author against a checklist set before the runs. Restating or reassuring lines: 0 with, 14 without (9 of them header and status tooltips in the table). Invented facts: 0 with (missing facts marked `[NEED]`), 5 without. Units sat in the column headers in both table runs. With the skill, the review proposed mostly deletions of repeated text, without it mostly rewording. Confidence low to medium (n = 1 per task).
 
-Benchmarked collections: all eight ranked in [bench/results/2026-10-16-skill-authoring.md](https://github.com/ESchuderer/BenchKeeper/blob/main/bench/results/2026-10-16-skill-authoring.md): static check plus one Opus review per collection.
+Benchmarked collections: all eight ranked in [bench/results/2026-10-16-skill-authoring.md](../../bench/results/2026-10-16-skill-authoring.md): static check plus one Opus review per collection.
 
 ## Decision
 

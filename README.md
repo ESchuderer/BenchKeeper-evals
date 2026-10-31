@@ -29,6 +29,7 @@ EVALUATIONS.md         index of the evaluations of components considered for Ben
 evaluations/           one file per component, by category, and studies.md (cross-tool findings, sources to follow)
 notes/                 research notes written for BenchKeeper issues, one folder per note; notes/README.md lists them
 bench/                 recorded benchmark scenarios and results moved from BenchKeeper; bench/ORIGIN.md says where each file came from
+  PROTOCOL.md          how the runs were set up, run and scored
   SCENARIOS.md         the arms (setups) that were compared
   results/             reports (*.md), run scores, manifests, and per-trial score and review files
 runs/                  raw runs, one folder per run: <condition>__<rep>, for example with-setup__1 (git-ignored)
@@ -44,7 +45,7 @@ tests/fixtures/runs/   two tiny runs used by the tests and by CI
 
 ## Recorded results
 
-`bench/results/2026-10-18-mistreevous.md` (Sonnet 5.5) and `bench/results/2026-10-19-mistreevous-opusplan.md` (opusplan) report the mistreevous brownfield brief; the per-trial files they rest on sit next to them. The raw trial data (apps, transcripts, screenshots) was removed and cannot be restored, so these tables cannot be recomputed. `bench/ORIGIN.md` lists the source of every file and the few files still in BenchKeeper. No new runs go into `bench/`: new work uses `runs/` and `results/` below.
+`bench/results/2026-10-18-mistreevous.md` (Sonnet 5.5) and `bench/results/2026-10-19-mistreevous-opusplan.md` (opusplan) report the mistreevous brownfield brief; the per-trial files they rest on sit next to them. The raw trial data (apps, transcripts, screenshots) was removed and cannot be restored, so these tables cannot be recomputed. `bench/ORIGIN.md` lists the source of every file. No new runs go into `bench/`: new work uses `runs/` and `results/` below.
 
 ## Run it locally
 
