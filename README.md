@@ -82,6 +82,7 @@ python analyzer/analyze.py report results/*.json --human human.csv --md results/
 ## Run it in CI
 
 - `checks.yml` runs on every pull request: pinned-tool install, `actionlint`, `zizmor`, the size check, pytest, and both fixture runs through the sandbox with a stubbed review and the report in the job summary. It uses no secret.
+- `codeql.yml` runs CodeQL with the `security-and-quality` suite (advanced setup: default setup cannot select that suite) on pushes and pull requests to `main` and weekly, for `actions`, `javascript-typescript` and `python`.
 - `code-quality.yml` is started by hand. It downloads a release asset that holds the raw runs (`tar -czf runs.tar.gz -C runs a__1 a__2 b__1 ...`), analyzes every run in its own job without a secret, optionally reviews each run with the model (`ANTHROPIC_API_KEY`, only in the review step), and writes one report to the job summary.
 - `mine-checklist.yml` is started by hand. It proposes new checklist items from public repositories and opens a pull request; a person reviews every item.
 
