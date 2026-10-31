@@ -1,6 +1,6 @@
 # Origin of the files in `bench/`
 
-Every file was copied unchanged from [ESchuderer/BenchKeeper](https://github.com/ESchuderer/BenchKeeper) at commit `9a28b89` (main, 2026-10-27), same relative path. Earlier history is in that repository.
+The files in the table below were copied unchanged from [ESchuderer/BenchKeeper](https://github.com/ESchuderer/BenchKeeper) at commit `9a28b89` (main, 2026-10-27), same relative path. Earlier history is in that repository. The files under "Moved last" came from a later commit.
 
 | Here | Origin (BenchKeeper `main@9a28b89`) |
 |---|---|
